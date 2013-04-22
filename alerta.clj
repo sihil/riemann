@@ -6,9 +6,10 @@
 (defn post-to-alerta
   "POST to the Alerta REST API."
   [url request]
-  (let [event-url url]
+  (let [event-url url
+  	event-json (json/generate-string request)]
   	(client/post event-url
-               {:body (json/generate-string request)
+               {:body event-json
                 :socket-timeout 5000
                 :conn-timeout 5000
                 :content-type :json
@@ -43,10 +44,10 @@
   "Creates an alerta adapter.
     (changed-state (alerta))"
   [e]
-  (post-to-alerta {:alert alerta-endpoints} (format-alerta-event e)))
+  (post-to-alerta (:alert alerta-endpoints) (format-alerta-event e)))
 
 (defn heartbeat [e] (post-to-alerta
-	{:heartbeat alerta-endpoints}
+	(:heartbeat alerta-endpoints)
 	{:origin (str "riemann/" hostname)
 	   :version version
 	   :type "Heartbeat"}))
