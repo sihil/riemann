@@ -1,8 +1,12 @@
 
+(def alerta-endpoints
+	{:alert "http://monitoring.gudev.gnl/alerta/api/v2/alerts/alert.json"
+	:heartbeat "http://monitoring.gudev.gnl:80/alerta/api/v2/heartbeats/heartbeat.json"})
+
 (defn post-to-alerta
   "POST to the Alerta REST API."
-  [request]
-  (let [event-url "http://monitoring.gudev.gnl/alerta/api/v2/alerts/alert.json"]
+  [url request]
+  (let [event-url url]
   	(client/post event-url
                {:body (json/generate-string request)
                 :socket-timeout 5000
@@ -39,22 +43,10 @@
   "Creates an alerta adapter.
     (changed-state (alerta))"
   [e]
-  (post-to-alerta (format-alerta-event e)))
+  (post-to-alerta {:alert alerta-endpoints} (format-alerta-event e)))
 
-(defn post-heartbeat
-  "POST to the Alerta REST API."
-  [request]
-  (let [event-url "http://monitoring.gudev.gnl:80/alerta/api/v2/heartbeats/heartbeat.json"]
-  	(client/post event-url
-               {:body (json/generate-string request)
-                :socket-timeout 5000
-                :conn-timeout 5000
-                :content-type :json
-                :accept :json
-                :throw-entire-message? true})))
-
-(defn heartbeat [e] (post-heartbeat
-	{
-	   :origin (str "riemann/" hostname)
+(defn heartbeat [e] (post-to-alerta
+	{:heartbeat alerta-endpoints}
+	{:origin (str "riemann/" hostname)
 	   :version version
 	   :type "Heartbeat"}))
